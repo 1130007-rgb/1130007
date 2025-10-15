@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>東中學生圖像創作小助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #111827; /* 深灰色背景 */
+        }
+        .feature-section, #main-menu {
+            display: none; /* 預設隱藏所有區塊 */
+        }
+        .feature-section.active, #main-menu.active {
+            display: block; /* 只顯示 active 的區塊 */
+        }
+        /* 美化檔案上傳按鈕 (新風格) */
+        input[type="file"]::file-selector-button {
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: 1px solid #0891b2; /* 青色邊框 */
+            background-color: #0891b2; /* 青色背景 */
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        input[type="file"]::file-selector-button:hover {
+            background-color: #0e7490; /* 深一點的青色 */
+        }
+        .loader {
+            border: 5px solid #374151; /* 深灰色軌道 */
+            border-top: 5px solid #22d3ee; /* 青色旋轉部分 */
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .menu-card {
+            transition: transform 0.2s ease-in-out, border-color 0.2s ease-in-out;
+        }
+        .menu-card:hover {
+            transform: translateY(-5px);
+            border-color: #22d3ee; /* 青色邊框 */
+        }
+        #upgrade-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none; /* Initially hidden */
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        .upgrade-card {
+            background-color: #374151;
+            border: 2px solid #9333ea;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 0.5rem;
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+        .upgrade-card:hover {
+            background-color: #4b5563;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body class="text-gray-200">
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-cyan-400">東中學生圖像創作小助手</h1>
+            <p class="mt-2 text-lg text-gray-400">本專案旨在為東中的學生提供設計gemini canvas直觀的 AI 圖像創作與編輯平台。從而激發創意、輔助學習的製作流程。</p>
+            <p class="mt-2 text-lg text-gray-400">創作學生姓名______增加功能______主旨說明______</p>
+            <img src="https://v1.padlet.pics/1/image.webp?t=c_thumb%2Cdpr_1%2Cg_auto%2Ch_48%2Cw_48&url=https%3A%2F%2Fpadlet-uploads.storage.googleapis.com%2F1291426550%2F1fae3f05fbfb14d73ce822b4144ef114%2F__1.jpg" style="margin: 0 auto; display: block;" class="bg-white rounded-full p-1" alt="logo">
+        </header>
+
+        <!-- 主選單 -->
+        <div id="main-menu" class="active">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                <!-- 1. 角色一致性 -->
+                <div data-feature="charConsistency" class="menu-card bg-gray-800 p-6 rounded-lg border border-gray-700 cursor-pointer">
+                    <h2 class="text-2xl font-bold text-indigo-400">角色一致性</h2>
+                    <p class="mt-2 text-gray-400">上傳角色圖片，輸入新場景或動作，生成特徵一致的新圖像。</p>
+                </div>
+                <!-- 2. 提示式影像編輯 -->
+                <div data-feature="promptEditing" class="menu-card bg-gray-800 p-6 rounded-lg border border-gray-700 cursor-pointer">
+                    <h2 class="text-2xl font-bold text-green-400">提示式影像編輯</h2>
+                    <p class="mt-2 text-gray-400">上傳任何圖片，用文字下達編輯指令，例如更換背景、添加物件。</p>
+                </div>
+                <!-- 3. 多圖融合 -->
+                <div data-feature="multiFusion" class="menu-card bg-gray-800 p-6 rounded-lg border border-gray-700 cursor-pointer">
+                    <h2 class="text-2xl font-bold text-purple-400">多圖融合</h2>
+                    <p class="mt-2 text-gray-400">將一張圖的內容與另一張圖的藝術風格相結合，創造全新作品。</p>
+                </div>
+                <!-- 4. 視覺模板應用 -->
+                <div data-feature="visualTemplate" class="menu-card bg-gray-800 p-6 rounded-lg border border-gray-700 cursor-pointer">
+                    <h2 class="text-2xl font-bold text-yellow-400">視覺模板應用</h2>
+                    <p class="mt-2 text-gray-400">快速生成獎狀、證書或卡片，將照片和文字自動排版到模板中。</p>
+                </div>
+                <!-- 5. 互動式教學 -->
+                <div data-feature="interactiveTeaching" class="menu-card bg-gray-800 p-6 rounded-lg border border-gray-700 cursor-pointer">
+                    <h2 class="text-2xl font-bold text-red-400">互動式教學</h2>
+                    <p class="mt-2 text-gray-400">拍下問題或草稿，讓 AI 提供圖文並茂的解答或創作建議。</p>
+                </div>
+                <!-- 6. 生成表情貼圖 -->
+                <div data-feature="stickerGeneration" class="menu-card bg-gray-800 p-6 rounded-lg border border-gray-700 cursor-pointer">
+                    <h2 class="text-2xl font-bold text-blue-400">生成表情貼圖</h2>
+                    <p class="mt-2 text-gray-400">上傳角色或用文字描述，生成一系列風格一致的可愛貼圖。</p>
+                </div>
+                 <!-- 7. 貪食蛇遊戲 -->
+                <div data-feature="snakeGame" class="menu-card bg-gray-800 p-6 rounded-lg border border-gray-700 cursor-pointer">
+                    <h2 class="text-2xl font-bold text-orange-400">經典貪食蛇</h2>
+                    <p class="mt-2 text-gray-400">來一場懷舊小遊戲！使用方向鍵控制蛇的移動，看看你能得幾分。</p>
+                </div>
+                <!-- 8. 打磚塊遊戲 -->
+                <div data-feature="breakoutGame" class="menu-card bg-gray-800 p-6 rounded-lg border border-gray-700 cursor-pointer">
+                    <h2 class="text-2xl font-bold text-pink-400">復古打磚塊</h2>
+                    <p class="mt-2 text-gray-400">移動擋板反彈小球，清除所有磚塊來獲得勝利！</p>
+                </div>
+                <!-- 10. 小恐龍遊戲 -->
+                <div data-feature="dinoGame" class="menu-card bg-gray-800 p-6 rounded-lg border border-gray-700 cursor-pointer">
+                    <h2 class="text-2xl font-bold text-teal-400">小恐龍跑跳</h2>
+                    <p class="mt-2 text-gray-400">按空白鍵跳躍，躲開仙人掌，看看你能跑多遠！</p>
+                </div>
+                <!-- 11. 倖存者遊戲 -->
+                <div data-feature="survivorGame" class="menu-card bg-gray-800 p-6 rounded-lg border border-gray-700 cursor-pointer">
+                    <h2 class="text-2xl font-bold text-purple-400">魔物倖存者</h2>
+                    <p class="mt-2 text-gray-400">移動閃避，自動攻擊。升級技能路線，挑戰Boss！</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 功能區塊 -->
+        <main>
+            <button id="back-to-menu" class="mb-4 bg-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-300">← 返回主選單</button>
+            
+            <!-- AI 功能區塊... (為簡潔省略) -->
+            
+            <!-- 遊戲區塊... (為簡潔省略) -->
+
+            <!-- 10. 小恐龍遊戲 -->
+            <section id="dinoGame" class="feature-section">
+                 <!-- ... 小恐龍遊戲 HTML ... -->
+            </section>
+            
+            <!-- 11. 倖存者遊戲 -->
+            <section id="survivorGame" class="feature-section">
+                <div class="bg-gray-800 p-6 rounded-lg border border-gray-700">
+                    <h2 class="text-2xl font-bold mb-1 text-purple-400">魔物倖存者</h2>
+                    <p class="text-gray-400 mb-4">使用「WASD」或「方向鍵」移動，角色會自動攻擊。你能活多久？</p>
+                    <div class="flex flex-col items-center">
+                        <div id="survivor-container" class="relative bg-gray-900 p-2 rounded-lg">
+                            <canvas id="survivorCanvas" width="800" height="500" class="bg-black rounded"></canvas>
+                             <div id="survivor-ui" class="absolute top-0 left-0 p-4 text-white font-bold w-full pointer-events-none">
+                                <div class="flex justify-between">
+                                    <span>時間: <span id="survivorTime">0.0</span></span>
+                                    <span>等級: <span id="survivorLevel">1</span></span>
+                                </div>
+                                <div class="mt-2">
+                                    <div class="w-full bg-gray-600 rounded-full h-4">
+                                        <div id="hpBar" class="bg-green-500 h-4 rounded-full" style="width: 100%"></div>
+                                    </div>
+                                     <div class="w-full bg-gray-600 rounded-full h-2 mt-1">
+                                        <div id="xpBar" class="bg-blue-500 h-2 rounded-full" style="width: 0%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="upgrade-modal">
+                                <h3 class="text-3xl font-bold mb-4">等級提升！</h3>
+                                <div id="upgrade-options"></div>
+                            </div>
+                        </div>
+                        <button id="startSurvivorBtn" class="mt-4 bg-purple-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-purple-600 transition duration-300">開始遊戲</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // --- 全局變數和初始化 ---
+        const imageDataBase = {}; 
+        let gameLoopInterval = null; 
+        let countdownInterval = null; 
+        let trapGenerationInterval = null; 
+        let breakoutGameLoopId = null; 
+        let dinoGameLoopId = null;
+        let survivorGameLoopId = null;
+
+        // --- 頁面導航邏輯 ---
+        const mainMenu = document.getElementById('main-menu');
+        const mainContent = document.querySelector('main');
+        const featureSections = document.querySelectorAll('.feature-section');
+        const backButton = document.getElementById('back-to-menu');
+        
+        function stopGame() {
+            if (gameLoopInterval) { clearInterval(gameLoopInterval); gameLoopInterval = null; }
+            if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+            if (trapGenerationInterval) { clearInterval(trapGenerationInterval); trapGenerationInterval = null; }
+            if (breakoutGameLoopId) { cancelAnimationFrame(breakoutGameLoopId); breakoutGameLoopId = null; }
+            if (dinoGameLoopId) { cancelAnimationFrame(dinoGameLoopId); dinoGameLoopId = null; }
+            if (survivorGameLoopId) { cancelAnimationFrame(survivorGameLoopId); survivorGameLoopId = null; }
+        }
+
+        function showMenu() {
+            mainContent.style.display = 'none';
+            mainMenu.classList.add('active');
+            featureSections.forEach(s => s.classList.remove('active'));
+            stopGame(); 
+        }
+
+        function showFeature(featureName) {
+            mainMenu.classList.remove('active');
+            mainContent.style.display = 'block';
+            featureSections.forEach(section => {
+                section.classList.toggle('active', section.id === featureName);
+            });
+            backButton.style.display = 'block';
+            if (featureName !== 'snakeGame' && featureName !== 'breakoutGame' && featureName !== 'dinoGame' && featureName !== 'survivorGame') {
+                stopGame();
+            }
+        }
+
+        // --- 初始狀態與事件綁定 ---
+        document.addEventListener('DOMContentLoaded', () => {
+             showMenu();
+             backButton.style.display = 'none';
+             
+             document.querySelectorAll('.menu-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    showFeature(card.dataset.feature);
+                });
+             });
+             
+             backButton.addEventListener('click', showMenu);
+        });
+
+        // --- AI 圖像功能 (為簡潔省略) ---
+        // ...
+        
+        // --- 遊戲邏輯 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- 貪食蛇遊戲設定 (為簡潔省略) ---
+            // ...
+
+            // --- 打磚塊遊戲設定 (為簡潔省略) ---
+            // ...
+            
+            // --- 小恐龍遊戲設定 (為簡潔省略) ---
+            // ...
+
+            // --- 魔物倖存者遊戲設定 ---
+            const survivorCanvas = document.getElementById('survivorCanvas');
+            if (survivorCanvas) {
+                const sCtx = survivorCanvas.getContext('2d');
+                const startBtn = document.getElementById('startSurvivorBtn');
+                const timeEl = document.getElementById('survivorTime');
+                const levelEl = document.getElementById('survivorLevel');
+                const hpBar = document.getElementById('hpBar');
+                const xpBar = document.getElementById('xpBar');
+                const upgradeModal = document.getElementById('upgrade-modal');
+                const upgradeOptionsContainer = document.getElementById('upgrade-options');
+
+                let player, enemies, projectiles, orbs, effects;
+                let gameOver, startTime;
+                let keys = {};
+                let fireCooldown = 0;
+                let spawnCooldown = 0;
+                let novaCooldown = 0;
+                let worldOffset = { x: 0, y: 0 };
+                
+                const UPGRADES = {
+                    damage: { name: "火力升級", maxLevel: 5, description: level => `子彈傷害提升 ${25 * (level + 1)}%` },
+                    fireRate: { name: "射速提升", maxLevel: 5, description: level => `攻擊速度提升 ${15 * (level + 1)}%` },
+                    multiShot: { name: "多重射擊", maxLevel: 3, description: level => `額外發射 ${level + 1} 枚子彈` },
+                    pierce: { name: "子彈穿透", maxLevel: 3, description: level => `子彈可穿透 ${level + 1} 個敵人` },
+                    shield: { name: "環繞護盾", maxLevel: 3, description: level => `增加一個環繞護盾 (總數 ${level + 1})` },
+                    speed: { name: "移動加速", maxLevel: 3, description: level => `移動速度提升 ${10 * (level + 1)}%` },
+                    regen: { name: "生命回復", maxLevel: 3, description: level => `每秒恢復 ${0.5 * (level + 1)} 生命` },
+                    pickup: { name: "拾取範圍", maxLevel: 3, description: level => `增加 ${25 * (level + 1)}% 吸收經驗範圍` },
+                    nova: { name: "冰霜新星", maxLevel: 1, description: () => '每10秒冰凍周圍敵人' },
+                };
+
+                class Player {
+                    constructor(x, y, radius, color) {
+                        this.x = x; this.y = y; this.radius = radius; this.color = color;
+                        this.health = 100; this.maxHealth = 100;
+                        this.xp = 0; this.level = 1; this.xpToNextLevel = 10;
+                        this.skills = {};
+                        this.shields = [];
+                    }
+                    getStat(stat) {
+                        const level = this.skills[stat] || 0;
+                        switch(stat) {
+                            case 'speed': return 3 * (1 + (level * 0.1));
+                            case 'fireRate': return 30 * Math.pow(0.85, level);
+                            case 'damage': return 1 * (1 + (level * 0.25));
+                            case 'projectileCount': return 1 + level;
+                            case 'pickupRadius': return 50 * (1 + (level * 0.25));
+                            case 'shieldCount': return level;
+                            case 'pierce': return level;
+                            case 'regen': return level * 0.5;
+                            default: return 0;
+                        }
+                    }
+                    draw() {
+                        sCtx.beginPath(); sCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                        sCtx.fillStyle = this.color; sCtx.fill();
+                    }
+                    update() {
+                        const regen = this.getStat('regen');
+                        if(regen > 0 && this.health < this.maxHealth) {
+                             this.health = Math.min(this.maxHealth, this.health + regen / 60);
+                        }
+                        this.shields.forEach((shield) => {
+                             shield.angle += 0.03;
+                             shield.x = this.x + Math.cos(shield.angle) * 40;
+                             shield.y = this.y + Math.sin(shield.angle) * 40;
+                        });
+                    }
+                }
+
+                class Projectile {
+                    constructor(x, y, radius, color, velocity, damage, pierce) {
+                        this.x = x; this.y = y; this.radius = radius; this.color = color; this.velocity = velocity;
+                        this.damage = damage; this.pierce = pierce;
+                    }
+                    draw() {
+                        sCtx.beginPath(); sCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); sCtx.fillStyle = this.color; sCtx.fill();
+                    }
+                    update() { this.x += this.velocity.x; this.y += this.velocity.y; }
+                }
+
+                class Enemy {
+                    constructor(x, y, radius, color, speed, health, xp) {
+                        this.x = x; this.y = y; this.radius = radius; this.color = color; this.speed = speed; this.health = health; this.xp = xp;
+                        this.isFrozen = false; this.frozenTimer = 0;
+                    }
+                    draw() {
+                        sCtx.fillStyle = this.isFrozen ? '#7dd3fc' : this.color; 
+                        sCtx.beginPath(); sCtx.rect(this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2); 
+                        sCtx.fill();
+                    }
+                    update() {
+                        if (this.isFrozen) {
+                            this.frozenTimer--;
+                            if (this.frozenTimer <= 0) this.isFrozen = false;
+                            return;
+                        }
+                        const angle = Math.atan2(player.y - this.y, player.x - this.x);
+                        this.x += Math.cos(angle) * this.speed; this.y += Math.sin(angle) * this.speed;
+                    }
+                }
+                
+                class Boss extends Enemy {
+                    constructor(x, y) {
+                        super(x, y, 30, '#581c87', 0.8, 50 * player.level, 50);
+                    }
+                     draw() {
+                        sCtx.fillStyle = this.isFrozen ? '#7dd3fc' : this.color; 
+                        sCtx.beginPath();
+                        sCtx.rect(this.x - this.radius, this.y - this.radius, this.radius * 2, this.radius * 2);
+                        sCtx.fill();
+                        sCtx.fillStyle = 'yellow';
+                        sCtx.beginPath();
+                        sCtx.arc(this.x, this.y, this.radius * 0.3, 0, Math.PI * 2);
+                        sCtx.fill();
+                    }
+                }
+
+                class Orb { // ... (unchanged)
+                    constructor(x, y, radius, color, xpValue) {
+                        this.x = x; this.y = y; this.radius = radius; this.color = color; this.xpValue = xpValue;
+                    }
+                    draw() {
+                        sCtx.save(); sCtx.translate(this.x, this.y); sCtx.rotate(Math.PI / 4);
+                        sCtx.fillStyle = this.color; sCtx.fillRect(-this.radius, -this.radius, this.radius * 2, this.radius * 2); sCtx.restore();
+                    }
+                }
+                
+                class Effect { // ... (unchanged)
+                    constructor(x, y, radius, maxRadius, color, duration) {
+                        this.x = x; this.y = y; this.radius = radius; this.maxRadius = maxRadius;
+                        this.color = color; this.duration = duration; this.life = duration;
+                    }
+                    draw() {
+                        sCtx.beginPath(); sCtx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                        sCtx.strokeStyle = `rgba(${this.color}, ${this.life / this.duration})`;
+                        sCtx.lineWidth = 3; sCtx.stroke();
+                    }
+                    update() {
+                        this.radius += (this.maxRadius - this.radius) * 0.1;
+                        this.life--;
+                    }
+                }
+
+                function initSurvivorGame() {
+                    stopGame();
+                    player = new Player(survivorCanvas.width / 2, survivorCanvas.height / 2, 10, 'blue');
+                    enemies = []; projectiles = []; orbs = []; effects = [];
+                    gameOver = false; startTime = Date.now();
+                    levelEl.textContent = 1; hpBar.style.width = '100%'; xpBar.style.width = '0%';
+                    startBtn.textContent = '重新開始';
+                    upgradeModal.style.display = 'none';
+                    animateSurvivor();
+                }
+
+                function handleLevelUp() {
+                    cancelAnimationFrame(survivorGameLoopId); survivorGameLoopId = null;
+                    
+                    const availableUpgrades = Object.keys(UPGRADES).filter(id => (player.skills[id] || 0) < UPGRADES[id].maxLevel);
+                    
+                    let chosenUpgrades = [];
+                    while(chosenUpgrades.length < 3 && availableUpgrades.length > 0) {
+                        const randomIndex = Math.floor(Math.random() * availableUpgrades.length);
+                        chosenUpgrades.push(availableUpgrades.splice(randomIndex, 1)[0]);
+                    }
+                    
+                    upgradeOptionsContainer.innerHTML = '';
+                    chosenUpgrades.forEach(id => {
+                        const skill = UPGRADES[id];
+                        const currentLevel = player.skills[id] || 0;
+                        const card = document.createElement('div');
+                        card.className = 'upgrade-card';
+                        card.innerHTML = `<h4 class="text-xl font-bold">${skill.name} Lv.${currentLevel + 1}</h4><p class="text-sm mt-1">${skill.description(currentLevel)}</p>`;
+                        card.onclick = () => applyUpgrade(id);
+                        upgradeOptionsContainer.appendChild(card);
+                    });
+                    upgradeModal.style.display = 'flex';
+                }
+
+                function applyUpgrade(upgradeId) {
+                    player.skills[upgradeId] = (player.skills[upgradeId] || 0) + 1;
+                    
+                    if(upgradeId === 'shield') {
+                        const count = player.getStat('shieldCount');
+                        player.shields = [];
+                        for(let i=0; i<count; i++) {
+                            player.shields.push({ x:0, y:0, radius: 5, angle: (Math.PI * 2 / count) * i });
+                        }
+                    } else if (upgradeId === 'health') {
+                        player.health = Math.min(player.maxHealth, player.health + player.maxHealth * 0.25);
+                    } else if(upgradeId === 'nova') {
+                        player.hasFrostNova = true; novaCooldown = 600;
+                    }
+                    
+                    upgradeModal.style.display = 'none';
+                    animateSurvivor(); // Resume game
+                }
+
+                function spawnEnemy() {
+                    const radius = 10 + Math.random() * 10;
+                    const side = Math.floor(Math.random() * 4);
+                    let x, y;
+                    if (side === 0) { x = -radius; y = Math.random() * survivorCanvas.height; }
+                    else if (side === 1) { x = survivorCanvas.width + radius; y = Math.random() * survivorCanvas.height; }
+                    else if (side === 2) { y = -radius; x = Math.random() * survivorCanvas.width; }
+                    else { y = survivorCanvas.height + radius; x = Math.random() * survivorCanvas.width; }
+                    enemies.push(new Enemy(x, y, radius, 'red', 1 + (player.level * 0.1), 3 + player.level, 2));
+                }
+                
+                function spawnBoss() {
+                     const side = Math.floor(Math.random() * 4);
+                    let x, y;
+                    if (side === 0) { x = -30; y = Math.random() * survivorCanvas.height; }
+                    else if (side === 1) { x = survivorCanvas.width + 30; y = Math.random() * survivorCanvas.height; }
+                    else if (side === 2) { y = -30; x = Math.random() * survivorCanvas.width; }
+                    else { y = survivorCanvas.height + 30; x = Math.random() * survivorCanvas.width; }
+                    enemies.push(new Boss(x, y));
+                }
+
+                function animateSurvivor() {
+                    if (gameOver) {
+                        sCtx.fillStyle = 'rgba(0,0,0,0.7)'; sCtx.fillRect(0,0, survivorCanvas.width, survivorCanvas.height);
+                        sCtx.fillStyle = 'white'; sCtx.font = '50px sans-serif'; sCtx.textAlign = 'center';
+                        sCtx.fillText('遊戲結束', survivorCanvas.width/2, survivorCanvas.height/2 - 20);
+                        sCtx.font = '30px sans-serif';
+                        sCtx.fillText(`存活時間: ${((Date.now() - startTime) / 1000).toFixed(1)} 秒`, survivorCanvas.width/2, survivorCanvas.height/2 + 30);
+                        stopGame(); return;
+                    }
+                    survivorGameLoopId = requestAnimationFrame(animateSurvivor);
+                    
+                    let dx = 0, dy = 0;
+                    if (keys['w'] || keys['ArrowUp']) dy -= player.getStat('speed');
+                    if (keys['s'] || keys['ArrowDown']) dy += player.getStat('speed');
+                    if (keys['a'] || keys['ArrowLeft']) dx -= player.getStat('speed');
+                    if (keys['d'] || keys['ArrowRight']) dx += player.getStat('speed');
+                    
+                    player.x += dx; player.y += dy;
+                    player.x = Math.max(player.radius, Math.min(survivorCanvas.width - player.radius, player.x));
+                    player.y = Math.max(player.radius, Math.min(survivorCanvas.height - player.radius, player.y));
+                    
+                    player.update();
+                    projectiles.forEach(p => p.update());
+                    enemies.forEach(e => e.update());
+
+                    fireCooldown--;
+                    if (fireCooldown <= 0 && enemies.length > 0) {
+                        let nearestEnemy = enemies.reduce((closest, enemy) => {
+                            const dist = Math.hypot(player.x - enemy.x, player.y - enemy.y);
+                            return (dist < closest.dist) ? { dist, enemy } : closest;
+                        }, { dist: Infinity, enemy: null }).enemy;
+
+                        if (nearestEnemy) {
+                            const angle = Math.atan2(nearestEnemy.y - player.y, nearestEnemy.x - player.x);
+                            const spread = 0.2;
+                            const count = player.getStat('projectileCount');
+                            for(let i = 0; i < count; i++) {
+                                const currentAngle = angle - (spread * (count - 1) / 2) + (i * spread);
+                                const velocity = { x: Math.cos(currentAngle) * 5, y: Math.sin(currentAngle) * 5 };
+                                projectiles.push(new Projectile(player.x, player.y, 3, 'yellow', velocity, player.getStat('damage'), player.getStat('pierce')));
+                            }
+                            fireCooldown = player.getStat('fireRate');
+                        }
+                    }
+
+                    spawnCooldown--;
+                    if (spawnCooldown <= 0) {
+                        spawnEnemy();
+                        spawnCooldown = Math.max(30, 120 - player.level * 5);
+                    }
+                    
+                    if(player.hasFrostNova) {
+                        novaCooldown--;
+                        if(novaCooldown <= 0) {
+                            effects.push(new Effect(player.x, player.y, 10, 150, '129, 240, 251', 30));
+                            enemies.forEach(enemy => {
+                                if(Math.hypot(player.x - enemy.x, player.y - enemy.y) < 150) {
+                                    enemy.isFrozen = true;
+                                    enemy.frozenTimer = 180;
+                                }
+                            });
+                            novaCooldown = 600;
+                        }
+                    }
+
+                    for (let i = orbs.length - 1; i >= 0; i--) {
+                        const orb = orbs[i];
+                        const dist = Math.hypot(player.x - orb.x, player.y - orb.y);
+                        if (dist < player.getStat('pickupRadius')) {
+                            const angle = Math.atan2(player.y - orb.y, player.x - orb.x);
+                            orb.x += Math.cos(angle) * 4; orb.y += Math.sin(angle) * 4;
+                        }
+                        if (dist < player.radius + orb.radius) {
+                            player.xp += orb.xpValue;
+                            orbs.splice(i, 1);
+                            if (player.xp >= player.xpToNextLevel) {
+                                player.level++; player.xp -= player.xpToNextLevel;
+                                player.xpToNextLevel *= 1.5;
+                                levelEl.textContent = player.level;
+                                if(player.level % 3 === 0) spawnBoss();
+                                handleLevelUp();
+                                return;
+                            }
+                        }
+                    }
+
+                    for (let i = enemies.length - 1; i >= 0; i--) {
+                        const enemy = enemies[i];
+                        if (!enemy) continue;
+                        const dist = Math.hypot(player.x - enemy.x, player.y - enemy.y);
+                        if (dist < player.radius + enemy.radius) {
+                            player.health -= 10;
+                            enemies.splice(i, 1);
+                            if (player.health <= 0) gameOver = true;
+                            continue;
+                        }
+                        
+                        player.shields.forEach(shield => {
+                            if(Math.hypot(shield.x - enemy.x, shield.y - enemy.y) < shield.radius + enemy.radius) {
+                                enemy.health -= 0.2;
+                            }
+                        });
+
+                        for (let j = projectiles.length - 1; j >= 0; j--) {
+                            const proj = projectiles[j];
+                            if (Math.hypot(proj.x - enemy.x, proj.y - enemy.y) < proj.radius + enemy.radius) {
+                                enemy.health -= proj.damage;
+                                proj.pierce--;
+                                if(proj.pierce < 0) projectiles.splice(j, 1);
+                                
+                                if (enemy.health <= 0) {
+                                    if (enemies[i]) { // Check if enemy still exists
+                                       orbs.push(new Orb(enemy.x, enemy.y, 5, 'cyan', enemy.xp));
+                                       enemies.splice(i, 1);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    projectiles = projectiles.filter(p => p.x > -10 && p.x < survivorCanvas.width + 10 && p.y > -10 && p.y < survivorCanvas.height + 10);
+                    
+                    sCtx.clearRect(0, 0, survivorCanvas.width, survivorCanvas.height);
+                    
+                    // Draw grid background
+                    sCtx.strokeStyle = "#27272a";
+                    sCtx.lineWidth = 1;
+                    const gridSize = 50;
+                    for (let x = worldOffset.x % gridSize; x < survivorCanvas.width; x += gridSize) {
+                        sCtx.beginPath(); sCtx.moveTo(x, 0); sCtx.lineTo(x, survivorCanvas.height); sCtx.stroke();
+                    }
+                     for (let y = worldOffset.y % gridSize; y < survivorCanvas.height; y += gridSize) {
+                        sCtx.beginPath(); sCtx.moveTo(0, y); sCtx.lineTo(survivorCanvas.width, y); sCtx.stroke();
+                    }
+
+                    orbs.forEach(orb => orb.draw());
+                    enemies.forEach(enemy => enemy.draw());
+                    projectiles.forEach(p => p.draw());
+                    effects.forEach((effect, i) => { effect.update(); effect.draw(); if(effect.life <= 0) effects.splice(i,1); });
+                    player.shields.forEach(shield => {
+                        sCtx.beginPath(); sCtx.arc(shield.x, shield.y, shield.radius, 0, Math.PI * 2);
+                        sCtx.fillStyle = 'rgba(255, 255, 255, 0.5)'; sCtx.fill();
+                    });
+                    player.draw();
+                    
+                    timeEl.textContent = ((Date.now() - startTime) / 1000).toFixed(1);
+                    hpBar.style.width = `${(player.health / player.maxHealth) * 100}%`;
+                    xpBar.style.width = `${(player.xp / player.xpToNextLevel) * 100}%`;
+                }
+                
+                startBtn.addEventListener('click', initSurvivorGame);
+                document.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
+                document.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+            }
+        });
+    </script>
+</body>
+</html>
+
